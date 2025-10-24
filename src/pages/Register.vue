@@ -5,15 +5,14 @@
 
       <!-- Name -->
       <div class="mb-4">
-        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-          Full Name
-        </label>
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
         <input
           id="name"
           v-model="name"
           type="text"
           placeholder="Enter your name"
           required
+          autofocus
           class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
           :disabled="loading"
         />
@@ -21,9 +20,7 @@
 
       <!-- Email -->
       <div class="mb-4">
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-          Email
-        </label>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
           id="email"
           v-model="email"
@@ -37,9 +34,7 @@
 
       <!-- Password -->
       <div class="mb-4">
-        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-          Password
-        </label>
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
         <input
           id="password"
           v-model="password"
@@ -55,23 +50,19 @@
       <button
         type="submit"
         class="w-full bg-green-500 hover:bg-green-600 text-white p-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="loading || !email || !password || !name"
+        :disabled="loading || !name.trim() || !email.trim() || !password"
       >
         {{ loading ? 'Registering...' : 'Register' }}
       </button>
 
       <!-- Error -->
-      <p v-if="error" class="text-red-500 mt-4 text-center text-sm">
-        {{ error }}
-      </p>
+      <p v-if="error" class="text-red-500 mt-4 text-center text-sm">{{ error }}</p>
 
-      <!-- Optional helper -->
+      <!-- Helper -->
       <div class="mt-4 text-center text-sm text-gray-600">
         <p>
           Already have an account?
-          <RouterLink to="/login" class="text-green-600 hover:underline">
-            Login
-          </RouterLink>
+          <RouterLink to="/login" class="text-green-600 hover:underline">Login</RouterLink>
         </p>
       </div>
     </form>
@@ -98,20 +89,20 @@ async function handleRegister() {
   loading.value = true
 
   try {
-    // ✅ Send correct object shape
+    // Trim inputs
     const res = await registerUser({
-      name: name.value,
-      email: email.value,
+      name: name.value.trim(),
+      email: email.value.trim(),
       password: password.value,
     })
 
     console.log('Register success:', res)
 
-    // ✅ Automatically log in after registration
-    await auth.login(email.value, password.value)
+    // Automatically log in after registration
+    await auth.login(email.value.trim(), password.value)
 
-    // ✅ Redirect to homepage or login
-    router.push('/login')
+    // Redirect to homepage
+    router.push('/')
   } catch (err) {
     console.error('Register error:', err)
     error.value = err.message || 'Registration failed. Please try again.'

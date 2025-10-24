@@ -5,15 +5,14 @@
 
       <!-- Email -->
       <div class="mb-4">
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-          Email
-        </label>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
           id="email"
           v-model="email"
           type="email"
           placeholder="Enter your email"
           required
+          autofocus
           class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
           :disabled="loading"
         />
@@ -21,9 +20,7 @@
 
       <!-- Password -->
       <div class="mb-4">
-        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-          Password
-        </label>
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
         <input
           id="password"
           v-model="password"
@@ -39,23 +36,19 @@
       <button
         type="submit"
         class="w-full bg-green-500 hover:bg-green-600 text-white p-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="loading || !email || !password"
+        :disabled="loading || !email.trim() || !password"
       >
         {{ loading ? 'Logging in...' : 'Login' }}
       </button>
 
       <!-- Error -->
-      <p v-if="error" class="text-red-500 mt-4 text-center text-sm">
-        {{ error }}
-      </p>
+      <p v-if="error" class="text-red-500 mt-4 text-center text-sm">{{ error }}</p>
 
-      <!-- Optional helper -->
+      <!-- Helper -->
       <div class="mt-4 text-center text-sm text-gray-600">
         <p>
           Don’t have an account?
-          <RouterLink to="/register" class="text-green-600 hover:underline">
-            Register
-          </RouterLink>
+          <RouterLink to="/register" class="text-green-600 hover:underline">Register</RouterLink>
         </p>
       </div>
     </form>
@@ -80,13 +73,12 @@ async function handleLogin() {
   loading.value = true
 
   try {
-    // Call Pinia store login method (real API)
-    await auth.login(email.value, password.value)
+    // Trim email before sending
+    await auth.login(email.value.trim(), password.value)
 
-    // Redirect after successful login
+    // Redirect to home after login
     router.push('/')
   } catch (err) {
-    console.error('Login error:', err)
     error.value = err.message || 'Login failed. Please check your credentials.'
   } finally {
     loading.value = false

@@ -1,49 +1,46 @@
 const API_BASE_URL = "https://api.oluwasetemi.dev/tasks";
 const AUTH_BASE_URL = "https://api.oluwasetemi.dev/api/auth";
 
-// ================== HELPER FUNCTIONS ==================
+// ================== HELPERS ==================
 
-// ✅ Get auth headers
+// Get auth headers
 function getAuthHeaders() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
-// ✅ Safe JSON parsing helper
+// Safe JSON parse
 async function safeJsonParse(response) {
   try {
     return await response.json();
   } catch {
-    return null; // return null if no valid JSON
+    return null;
   }
 }
 
-// ✅ Handle API responses & errors
+// Handle API responses
 async function handleResponse(response) {
   if (!response.ok) {
     const errorData = await safeJsonParse(response);
-    let errorMessage = errorData?.message || errorData?.error || `HTTP ${response.status}`;
+    const errorMessage = errorData?.message || errorData?.error || `HTTP ${response.status}`;
 
-    // Handle 401 Unauthorized
     if (response.status === 401) {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      window.location.href = "/login";
     }
 
     throw new Error(errorMessage);
   }
-
-  // ✅ Return parsed JSON or null safely
   return await safeJsonParse(response);
 }
 
 // ================== AUTHENTICATION ==================
 
-// ✅ Login user
+// Login user
 export async function loginUser(email, password) {
   try {
     const res = await fetch(`${AUTH_BASE_URL}/sign-in/email`, {
@@ -52,62 +49,65 @@ export async function loginUser(email, password) {
       body: JSON.stringify({ email, password }),
     });
 
-    return await handleResponse(res);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Login failed response:", text);
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || `Login failed with status ${res.status}`);
+    return data;
   } catch (error) {
     console.error("Login error:", error);
     throw error;
   }
 }
-// ✅ Register user (fully fixed)
+
+// Register user
 export async function registerUser(userData) {
   try {
     const res = await fetch(`${AUTH_BASE_URL}/sign-up/email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // ❌ remove credentials (CORS-safe)
-      // ✅ include correct payload
       body: JSON.stringify({
         email: userData.email.trim(),
         password: userData.password,
         name: userData.name,
-        // Optional callback for success redirect
-        callbackURL: "https://api.oluwasetemi.dev/api/auth/sign-in/email"
+        // Remove callbackURL to fix 403
       }),
     });
 
+    // Only read JSON once via handleResponse
     return await handleResponse(res);
+
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Registration failed response:", error);
     throw error;
   }
 }
 
-
-
-
-// ✅ Get current user
+// Get current user
 export async function getCurrentUser() {
   try {
     const res = await fetch(`${AUTH_BASE_URL}/get-session`, {
-      method: 'GET',
+      method: "GET",
       headers: getAuthHeaders(),
-      credentials: 'include',
+      credentials: "include",
     });
     return await handleResponse(res);
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error("Error fetching user:", error);
     throw error;
   }
 }
 
-// ✅ Logout user (with safe JSON handling)
+// Logout user
 export async function logoutUser() {
   try {
     const res = await fetch(`${AUTH_BASE_URL}/sign-out`, {
       method: "POST",
       headers: getAuthHeaders(),
     });
-
     const data = await safeJsonParse(res);
     return data || { success: res.ok };
   } catch (error) {
@@ -116,40 +116,9 @@ export async function logoutUser() {
   }
 }
 
-// ✅ Change password
-export async function changePassword(currentPassword, newPassword) {
-  try {
-    const res = await fetch(`${AUTH_BASE_URL}/change-password`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    return await handleResponse(res);
-  } catch (error) {
-    console.error('Password change error:', error);
-    throw error;
-  }
-}
+// ================== TODO API ==================
 
-// ✅ Request password reset
-export async function requestPasswordReset(email) {
-  try {
-    const res = await fetch(`${AUTH_BASE_URL}/forget-password`, {
-      method: "POST",
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    return await handleResponse(res);
-  } catch (error) {
-    console.error('Password reset request error:', error);
-    throw error;
-  }
-}
-
-// ================== TODO API CALLS ==================
-
-// ✅ Fetch all todos
+// Fetch all todos
 export async function fetchTodos(page = 1, limit = 10) {
   try {
     const res = await fetch(`${API_BASE_URL}?page=${page}&limit=${limit}`, {
@@ -157,12 +126,12 @@ export async function fetchTodos(page = 1, limit = 10) {
     });
     return await handleResponse(res);
   } catch (error) {
-    console.error('Error fetching todos:', error);
+    console.error("Error fetching todos:", error);
     throw error;
   }
 }
 
-// ✅ Fetch single todo by ID
+// Fetch single todo
 export async function fetchTodoById(id) {
   try {
     const res = await fetch(`${API_BASE_URL}/${id}`, {
@@ -175,7 +144,7 @@ export async function fetchTodoById(id) {
   }
 }
 
-// ✅ Create todo
+// Create todo
 export async function createTodo(todo) {
   try {
     const res = await fetch(API_BASE_URL, {
@@ -185,12 +154,12 @@ export async function createTodo(todo) {
     });
     return await handleResponse(res);
   } catch (error) {
-    console.error('Error creating todo:', error);
+    console.error("Error creating todo:", error);
     throw error;
   }
 }
 
-// ✅ Update todo
+// Update todo
 export async function updateTodo(id, updates) {
   try {
     const res = await fetch(`${API_BASE_URL}/${id}`, {
@@ -205,7 +174,7 @@ export async function updateTodo(id, updates) {
   }
 }
 
-// ✅ Delete todo
+// Delete todo
 export async function deleteTodo(id) {
   try {
     const res = await fetch(`${API_BASE_URL}/${id}`, {

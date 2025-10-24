@@ -61,16 +61,13 @@ async function handleLogout() {
   loggingOut.value = true
 
   try {
-    // Attempt server logout
+    // Logout via store
     await auth.logout()
-    console.log("Server logout successful")
   } catch (err) {
     console.error("Logout API error:", err)
   } finally {
-    // Always clear auth (handles $reset problem)
+    // Ensure auth is cleared
     auth.clearAuth()
-    console.log("Local auth cleared")
-
     loggingOut.value = false
     router.push('/login')
   }

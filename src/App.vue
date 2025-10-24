@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- Show navbar only on authenticated pages -->
-    <Navbar v-if="!isAuthPage" />
+    <NavBar v-if="!isAuthPage" />
     
     <!-- Main content -->
     <router-view />
@@ -11,7 +11,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import NavBar from '@/components/NavBar.vue'
+import NavBar from '@/components/NavBar.vue' // Make sure the file is NavBar.vue
 
 const route = useRoute()
 
@@ -22,7 +22,7 @@ const isAuthPage = computed(() => {
 </script>
 
 <style>
-/* Add any global styles here */
+/* Global styles */
 #app {
   min-height: 100vh;
   background-color: #f9fafb;
