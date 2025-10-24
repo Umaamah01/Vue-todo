@@ -1,7 +1,23 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-    <form @submit.prevent="handleLogin" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-      <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+    <form @submit.prevent="handleRegister" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h1 class="text-2xl font-bold mb-6 text-center">Create Account</h1>
+
+      <!-- Name -->
+      <div class="mb-4">
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+          Full Name
+        </label>
+        <input
+          id="name"
+          v-model="name"
+          type="text"
+          placeholder="Enter your name"
+          required
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          :disabled="loading"
+        />
+      </div>
 
       <!-- Email -->
       <div class="mb-4">
@@ -39,9 +55,9 @@
       <button
         type="submit"
         class="w-full bg-green-500 hover:bg-green-600 text-white p-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="loading || !email || !password"
+        :disabled="loading || !email || !password || !name"
       >
-        {{ loading ? 'Logging in...' : 'Login' }}
+        {{ loading ? 'Registering...' : 'Register' }}
       </button>
 
       <!-- Error -->
@@ -52,9 +68,9 @@
       <!-- Optional helper -->
       <div class="mt-4 text-center text-sm text-gray-600">
         <p>
-          Don’t have an account?
-          <RouterLink to="/register" class="text-green-600 hover:underline">
-            Register
+          Already have an account?
+          <RouterLink to="/login" class="text-green-600 hover:underline">
+            Login
           </RouterLink>
         </p>
       </div>
@@ -66,28 +82,39 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { registerUser } from '@/utils/api'
 
 const router = useRouter()
 const auth = useAuthStore()
 
+const name = ref('')
 const email = ref('')
 const password = ref('')
 const error = ref(null)
 const loading = ref(false)
 
-async function handleLogin() {
+async function handleRegister() {
   error.value = null
   loading.value = true
 
   try {
-    // Call Pinia store login method (real API)
+    // ✅ Send correct object shape
+    const res = await registerUser({
+      name: name.value,
+      email: email.value,
+      password: password.value,
+    })
+
+    console.log('Register success:', res)
+
+    // ✅ Automatically log in after registration
     await auth.login(email.value, password.value)
 
-    // Redirect after successful login
-    router.push('/')
+    // ✅ Redirect to homepage or login
+    router.push('/login')
   } catch (err) {
-    console.error('Login error:', err)
-    error.value = err.message || 'Login failed. Please check your credentials.'
+    console.error('Register error:', err)
+    error.value = err.message || 'Registration failed. Please try again.'
   } finally {
     loading.value = false
   }

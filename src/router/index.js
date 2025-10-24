@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/pages/Home.vue'
 import TodoDetails from '@/pages/TodoDetails.vue'
 import Login from '@/pages/Login.vue'
+import Register from '@/pages/Register.vue' // ✅ added
 import { useAuthStore } from '@/store/auth'
 
 const routes = [
@@ -23,12 +24,16 @@ const routes = [
     component: Login,
     meta: { guest: true } // Redirect to home if already logged in
   },
-  // Redirect /dashboard to home (since they're the same)
+  { 
+    path: '/register',      // ✅ New route for registration
+    name: 'Register',
+    component: Register,
+    meta: { guest: true }
+  },
   { 
     path: '/dashboard', 
-    redirect: '/'
+    redirect: '/'           // optional redirect
   },
-  // 404 catch-all route
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -41,25 +46,19 @@ const router = createRouter({
   routes,
 })
 
-// Navigation guard for authentication
+// ✅ Navigation Guard (for authentication)
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
   const isAuthenticated = auth.isAuthenticated
 
-  // Check if route requires authentication
   if (to.meta.requiresAuth && !isAuthenticated) {
-    // Redirect to login with the original destination
     next({ 
       name: 'Login', 
       query: { redirect: to.fullPath }
     })
-  } 
-  // Check if route is for guests only (like login page)
-  else if (to.meta.guest && isAuthenticated) {
-    // Redirect authenticated users away from login
+  } else if (to.meta.guest && isAuthenticated) {
     next({ name: 'Home' })
-  } 
-  else {
+  } else {
     next()
   }
 })
